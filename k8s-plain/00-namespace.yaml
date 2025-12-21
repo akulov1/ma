@@ -1,0 +1,6 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: user-platform-exam
+  labels:
+    app.kubernetes.io/part-of: user-platform

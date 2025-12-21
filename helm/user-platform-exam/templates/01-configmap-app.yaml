@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: {{ .Values.namespace | quote }}
+  labels:
+    {{- include "upe.labels" . | nindent 4 }}
+    app.kubernetes.io/component: config
+data:
+  LOG_LEVEL: {{ .Values.config.logLevel | quote }}
+  JWT_ISSUER: {{ .Values.config.jwtIssuer | quote }}

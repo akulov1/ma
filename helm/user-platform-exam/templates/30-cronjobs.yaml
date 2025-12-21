@@ -1,0 +1,93 @@
+{{- $ns := .Values.namespace -}}
+{{- if .Values.cronJobs.dailyStatsCollector.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: daily-stats-collector
+  namespace: {{ $ns | quote }}
+  labels:
+    {{- include "upe.labels" . | nindent 4 }}
+    app.kubernetes.io/component: cron
+spec:
+  schedule: {{ .Values.cronJobs.dailyStatsCollector.schedule | quote }}
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            {{- include "upe.labels" . | nindent 12 }}
+            app.kubernetes.io/component: cron
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: collector
+              image: {{ .Values.cronJobs.dailyStatsCollector.image | quote }}
+              args:
+                - "-sS"
+                - "http://report-service/report/1"
+{{- end }}
+
+{{- if .Values.cronJobs.notificationSender.enabled }}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: notification-sender
+  namespace: {{ $ns | quote }}
+  labels:
+    {{- include "upe.labels" . | nindent 4 }}
+    app.kubernetes.io/component: cron
+spec:
+  schedule: {{ .Values.cronJobs.notificationSender.schedule | quote }}
+  concurrencyPolicy: {{ .Values.cronJobs.notificationSender.concurrencyPolicy | quote }}
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            {{- include "upe.labels" . | nindent 12 }}
+            app.kubernetes.io/component: cron
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: sender
+              image: {{ .Values.cronJobs.notificationSender.image | quote }}
+              command: ["sh","-c"]
+              args:
+                - |
+                  echo "Sending demo notification..."
+                  curl -sS -X POST http://notification-service/notify \
+                    -H 'Content-Type: application/json' \
+                    -d '{"user_id":1,"message":"Ежедневное напоминание","channel":"email"}'
+{{- end }}
+
+{{- if .Values.cronJobs.dataCleanup.enabled }}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: data-cleanup
+  namespace: {{ $ns | quote }}
+  labels:
+    {{- include "upe.labels" . | nindent 4 }}
+    app.kubernetes.io/component: cron
+spec:
+  schedule: {{ .Values.cronJobs.dataCleanup.schedule | quote }}
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            {{- include "upe.labels" . | nindent 12 }}
+            app.kubernetes.io/component: cron
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: cleanup
+              image: {{ .Values.cronJobs.dataCleanup.image | quote }}
+              command: ["sh","-c"]
+              args:
+                - |
+                  echo "[data-cleanup] Cleanup started at $(date)"
+                  echo "[data-cleanup] Simulated cleanup finished"
+{{- end }}

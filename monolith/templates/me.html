@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block nav %}
+  <a class="btn" href="/">На главную</a>
+  <a class="btn" href="/logout">Выйти</a>
+{% endblock %}
+{% block content %}
+  <div class="card">
+    <h2 style="margin-top:0;">Личный кабинет</h2>
+    <p class="muted">После успешного входа пользователь перенаправляется на эту страницу.</p>
+    <div class="row">
+      <div>
+        <b>User ID:</b> {{ user.id }}
+      </div>
+      <div>
+        <b>Login:</b> {{ user.login }}
+      </div>
+      <div>
+        <b>Status:</b> {{ user.status }}
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0;">Профиль</h3>
+    <form method="post" action="/me/profile">
+      <label>ФИО</label>
+      <input name="full_name" value="{{ profile.full_name }}" placeholder="Иванов Иван" />
+      <label>О себе</label>
+      <textarea name="bio" placeholder="bio">{{ profile.bio }}</textarea>
+      <button type="submit">Сохранить</button>
+    </form>
+  </div>
+{% endblock %}

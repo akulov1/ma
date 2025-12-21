@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ui-service
+  namespace: {{ .Values.namespace | quote }}
+  labels:
+    {{- include "upe.labels" . | nindent 4 }}
+    app.kubernetes.io/component: ui
+spec:
+  replicas: {{ .Values.services.ui.replicas }}
+  selector:
+    matchLabels:
+      {{- include "upe.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: ui
+      app.kubernetes.io/name: ui-service
+  template:
+    metadata:
+      labels:
+        {{- include "upe.labels" . | nindent 8 }}
+        {{- include "upe.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: ui
+        app.kubernetes.io/name: ui-service
+    spec:
+      containers:
+        - name: ui-service
+          image: {{ .Values.services.ui.image | quote }}
+          imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: FLASK_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: platform-secrets
+                  key: JWT_SECRET
+            - name: PORT
+              value: "8080"
+            - name: AUTH_URL
+              value: "http://auth-service:80"
+            - name: PROFILE_URL
+              value: "http://profile-service:80"
+            - name: NOTIF_URL
+              value: "http://notification-service:80"
+            - name: REPORT_URL
+              value: "http://report-service:80"
+          envFrom:
+            - configMapRef:
+                name: ui-config
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: {{ .Values.probes.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.periodSeconds }}
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: {{ .Values.probes.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.periodSeconds }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ui-service
+  namespace: {{ .Values.namespace | quote }}
+  labels:
+    {{- include "upe.labels" . | nindent 4 }}
+    app.kubernetes.io/component: ui
+spec:
+  type: {{ .Values.services.ui.serviceType }}
+  selector:
+    {{- include "upe.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: ui
+    app.kubernetes.io/name: ui-service
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+      {{- if eq .Values.services.ui.serviceType "NodePort" }}
+      nodePort: {{ .Values.services.ui.nodePort }}
+      {{- end }}

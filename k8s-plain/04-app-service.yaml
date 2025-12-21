@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: monolith-app
+  namespace: user-platform-exam
+  labels:
+    app.kubernetes.io/name: monolith-app
+    app.kubernetes.io/part-of: user-platform
+spec:
+  type: NodePort
+  selector:
+    app.kubernetes.io/name: monolith-app
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+      nodePort: 30080

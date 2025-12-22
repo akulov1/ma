@@ -21,6 +21,7 @@ spec:
       containers:
         - name: profile-service
           image: profile-service:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
           envFrom:

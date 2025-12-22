@@ -1,6 +1,7 @@
 import os
 import psycopg2
 import requests
+import datetime as dt
 from flask import Flask, request, redirect, render_template_string
 
 DB_HOST = os.getenv("DB_HOST", "postgres")
@@ -34,17 +35,18 @@ def get_user(username: str):
         cur.execute("SELECT username, status, created_at FROM users WHERE username=%s", (username,))
         return cur.fetchone()
 
-def validate_with_auth(token: str):
+def validate_session_db(token: str):
     if not token:
         return None
-    try:
-        r = requests.get(AUTH_URL.rstrip("/") + "/api/validate", params={"token": token}, timeout=2)
-        if r.status_code != 200:
-            return None
-        data = r.json()
-        return data.get("username") if data.get("valid") else None
-    except Exception:
+    with db_conn() as conn, conn.cursor() as cur:
+        cur.execute("SELECT username, expires_at FROM sessions WHERE token=%s", (token,))
+        row = cur.fetchone()
+    if not row:
         return None
+    username, expires_at = row
+    if expires_at < dt.datetime.utcnow():
+        return None
+    return username
 
 app = Flask(__name__)
 
@@ -65,7 +67,7 @@ PROFILE_HTML = """
 @app.get("/profile")
 def profile():
     token = request.cookies.get(SESSION_COOKIE)
-    username = validate_with_auth(token)
+    username = validate_session_db(token)
     if not username:
         return redirect(AUTH_PUBLIC_URL.rstrip("/") + "/login")
 

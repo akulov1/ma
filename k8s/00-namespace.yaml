@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: end
+  labels:
+    app: user-platform
+    env: exam

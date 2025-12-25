@@ -18,7 +18,7 @@ DB_USER = os.getenv("DB_USER", "user")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "password")
 
 NOTIFICATION_URL = os.getenv("NOTIFICATION_URL", "http://notification-service:8000")
-PROFILE_PUBLIC_URL = os.getenv("PROFILE_PUBLIC_URL", "/")
+PROFILE_PUBLIC_URL = os.getenv("PROFILE_PUBLIC_URL", "/")  # можно переопределить в k8s
 
 SESSION_COOKIE = "session_token"
 
@@ -234,4 +234,3 @@ def health_ready():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000)
-

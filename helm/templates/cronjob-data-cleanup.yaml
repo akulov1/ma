@@ -1,0 +1,35 @@
+{{- if .Values.cronjobs.dataCleanup.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: data-cleanup
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: data-cleanup
+    {{- include "end-platform.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.cronjobs.dataCleanup.schedule | quote }}
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: data-cleanup
+            {{- include "end-platform.labels" . | nindent 12 }}
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: job
+              image: "{{ .Values.images.jobs.repository }}:{{ .Values.images.jobs.tag }}"
+              imagePullPolicy: {{ .Values.images.jobs.pullPolicy }}
+              command: ["python", "data_cleanup.py"]
+              envFrom:
+                - configMapRef: { name: app-config }
+              env:
+                - name: DB_USER
+                  valueFrom: { secretKeyRef: { name: db-secret, key: DB_USER } }
+                - name: DB_PASSWORD
+                  valueFrom: { secretKeyRef: { name: db-secret, key: DB_PASSWORD } }
+                - name: DB_NAME
+                  valueFrom: { secretKeyRef: { name: db-secret, key: DB_NAME } }
+{{- end }}

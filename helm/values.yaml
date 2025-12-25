@@ -1,0 +1,61 @@
+namespace: end
+
+replicaCount:
+  auth: 2
+  profile: 2
+  notification: 2
+  report: 2
+
+images:
+  auth:
+    repository: auth-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  profile:
+    repository: profile-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  notification:
+    repository: notification-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  report:
+    repository: report-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  jobs:
+    repository: jobs-runner
+    tag: latest
+    pullPolicy: IfNotPresent
+  postgres:
+    repository: postgres
+    tag: "16-alpine"
+    pullPolicy: IfNotPresent
+
+db:
+  name: usersdb
+  user: user
+  password: password
+
+ui:
+  LOGIN_TITLE: "Вход в систему"
+  REGISTER_TITLE: "Регистрация"
+  WELCOME_MESSAGE: "Добро пожаловать в платформу"
+
+service:
+  nodePorts:
+    auth: 30080
+    profile: 30081
+    report: 30083
+
+cronjobs:
+  dailyStatsCollector:
+    enabled: true
+    schedule: "0 2 * * *"
+  notificationSender:
+    enabled: true
+    schedule: "0 9 * * *"
+    concurrencyPolicy: Forbid
+  dataCleanup:
+    enabled: true
+    schedule: "0 0 * * 0"
